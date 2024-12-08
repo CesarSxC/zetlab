@@ -1,0 +1,11 @@
+pub mod analisis;
+pub mod cat_analisis;
+pub mod encventa;
+pub mod especialidad;
+pub mod medicos;
+pub mod metodopago;
+pub mod e_muestras;
+pub mod pacientes;
+pub mod sesioncaja;
+pub mod unidades;
+pub mod usuarios;

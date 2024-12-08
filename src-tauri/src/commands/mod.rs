@@ -1,0 +1,9 @@
+pub mod c_login;
+pub mod c_muestras;
+pub mod c_cat_analisis;
+pub mod c_especialidad;
+pub mod c_unidades;
+pub mod c_analisis;
+pub mod c_pacientes;
+pub mod c_medicos;
+pub mod c_venta;
