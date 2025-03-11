@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback  } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, UserPlus, Stethoscope, Receipt, X } from 'lucide-react';
+import { Search, Plus, UserPlus, Stethoscope, Receipt, X, Ticket, Eraser, List } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,23 +15,70 @@ import { ModalAM } from "@/pages/principal_views/components/modals/medicos/agreg
 import { ModalBP } from "@/pages/principal_views/components/modals/ventas/buscar_p";
 import { ModalBM } from "@/pages/principal_views/components/modals/ventas/buscar_m";
 import { ModalBA } from "@/pages/principal_views/components/modals/ventas/buscar_a";
+import  VerTicket  from "@/pages/principal_views/components/documents/ticket";
+import { apiCall } from '@/lib/apicall';
+import { invoke } from "@tauri-apps/api/tauri";
+import { Link  } from "react-router-dom";
+import Barcode from "react-barcode";
+
 
 interface Analisis {
-  id_analisis: string
-  nombre_analisis: string
-  nombre_categoria_ana: string
-  precio: number
+  id_analisis: number;
+  nombre_categoria_ana: string;
+  nombre_analisis: string;
+  precio: number;
+  nombre_muestra: string;
+  nombre_unidad: string;
+  rango_referencial: boolean;
 }
+interface Procedencia { id_procedencia: number; nombre_pro: string; }
+interface MetodoPago { id_metodo_pago: number; nombre_metodop: string; }
+interface Descuento { id_desc: number; nombre_desc: string; valor_desc: number}
+
+interface SesionCaja {
+  id_sesion_caja: number;
+  fecha_apertura: string;
+  id_usuario: number;
+  monto_inicial: number;
+}
+interface VentaResponse {
+  id_venta: number;
+  codigo_barra: string;
+  mensaje: string;
+}
+interface VentaDatos{
+  id_paciente: number;
+  id_procedencia: number;
+  id_metodo_pago: number;
+  id_medico: number;
+  id_desc?: number | null;
+  observacion: string;
+  total_importe: number;
+  detalles: {
+    id_analisis: number;
+    precio: number;
+    resultado: string;
+    total: number;
+  }[];
+  codigoBarra: string;
+};
 
 export default function VentasProceso() {
-  const [selectedExams, setSelectedExams] = useState<Analisis[]>([
-    { id_analisis: 'E0132', nombre_analisis: 'SARS-COV-2 X PCR (PCR-RT MOLECULAR)', nombre_categoria_ana: 'BIOQUÍMICA', precio: 100 },
-    { id_analisis: 'E0244', nombre_analisis: 'UREA', nombre_categoria_ana: 'BIOQUÍMICA', precio: 15 },
-  ])
-  const [subtotal, setSubtotal] = useState(0)
-  const [igv, setIgv] = useState(0)
-  const [total, setTotal] = useState(0)
-  const [priceType, setPriceType] = useState("public")
+  const [selectedAnalisis, setSelectedAnalisis] = useState<Analisis[]>([]);
+  const [procedencia, setProcedencia] = useState<Procedencia[]>([]);
+  const [selectedProcedencia, setSelectedProcedencia] = useState<string>("");
+  const [metpago, setMetPago] = useState<MetodoPago[]>([]);
+  const [selectedMetpago, setSelectedMetpago] = useState<string>("");
+  const [descuento, setDescuento] = useState<Descuento[]>([]);
+  const [selectedDescuento, setSelectedDescuento] = useState<string>("1");;
+  const [subtotal, setSubtotal] = useState(0);
+  const [igv, setIgv] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [isCajaAbierta, setIsCajaAbierta] = useState(false);
+  const [codigoBarra, setCodigoBarra] = useState<string | null>(null);
+  const [isTicketModalOpen, setTicketModalOpen] = useState(false);
+  const [ventaDatos, setVentaDatos] = useState<VentaDatos | null>(null);
+  const [ventaGuardada, setVentaGuardada] = useState(false);
 
   const [isAddModalOpenP, setIsAddModalOpenP] = useState(false);
   const openAddModalP = () => setIsAddModalOpenP(true);
@@ -46,7 +92,7 @@ export default function VentasProceso() {
   const openModalBP = () => setIsModalOpenBP(true);
   const closeModalBP = () => setIsModalOpenBP(false);
   const [selectedPerson, setSelectedPerson] = useState({
-    id_persona: 0, 
+    id_paciente: 0, 
     num_doc: "",
     nombre_p: "",
     apellido_p: "",
@@ -72,11 +118,11 @@ export default function VentasProceso() {
     edad: 0,
     nombre_sx: "",
   });  
-
+  const [observacion, setObservacion] = useState("");
   const [isModalOpenBA, setIsModalOpenBA] = useState(false);
   const openModalBA = () => setIsModalOpenBA(true);
   const closeModalBA = () => setIsModalOpenBA(false);
-
+  
   const calcularEdad = (fechaNacimiento: string) => {
     const nacimiento = new Date(fechaNacimiento);
     const hoy = new Date();
@@ -89,11 +135,10 @@ export default function VentasProceso() {
     return edad;
   };
 
-  const handlePersonSelect = (person: { id_persona: number, nombre_p: string, apellido_p: string, num_doc: string, fecha_nacimiento:string, nombre_sx: string }) => {
-    console.log("Persona seleccionada:", person);
+  const handlePersonSelect = (person: { id_paciente: number, nombre_p: string, apellido_p: string, num_doc: string, fecha_nacimiento:string, nombre_sx: string }) => {
     const edad = calcularEdad(person.fecha_nacimiento);
     setSelectedPerson({
-      id_persona: person.id_persona,
+      id_paciente: person.id_paciente,
       nombre_p: person.nombre_p,
       apellido_p: person.apellido_p,
       num_doc: person.num_doc,
@@ -102,14 +147,14 @@ export default function VentasProceso() {
       edad: edad,
       nombre_sx:person.nombre_sx,
     });
+      
     closeModalBP();
   };
 
-  const handleMedicoSelect = (medico: { id_persona: number, nombre_p: string, codigo_cmp: string, nombre_esp:string, comision: number, apellido_p: string, num_doc: string, fecha_nacimiento:string, nombre_sx: string }) => {
-    console.log("Medico seleccionada:", medico);
+  const handleMedicoSelect = (medico: { id_medico: number, nombre_p: string, codigo_cmp: string, nombre_esp:string, comision: number, apellido_p: string, num_doc: string, fecha_nacimiento:string, nombre_sx: string }) => {
     const edad = calcularEdad(medico.fecha_nacimiento);
     setSelectedMedico({
-      id_medico: medico.id_persona,
+      id_medico: medico.id_medico,
       codigo_cmp: medico.codigo_cmp,
       nombre_esp: medico.nombre_esp,
       comision: medico.comision,
@@ -124,17 +169,151 @@ export default function VentasProceso() {
     closeModalBM();
   };
 
-  useEffect(() => {
-    const newSubtotal = selectedExams.reduce((sum, exam) => sum + exam.precio, 0)
-    const newIgv = newSubtotal * 0.18
-    setSubtotal(newSubtotal)
-    setIgv(newIgv)
-    setTotal(newSubtotal + newIgv)
-  }, [selectedExams])
+  const limpiarFormulario = () => {
+    setSelectedPerson({
+      id_paciente: 0,
+      num_doc: "",
+      nombre_p: "",
+      apellido_p: "",
+      fullName: "",
+      fecha_nacimiento: "",
+      edad: 0,
+      nombre_sx: "",
+    });
+    setSelectedMedico({
+      id_medico: 0,
+      codigo_cmp: "",
+      nombre_esp: "",
+      comision: 0,
+      num_doc: "",
+      nombre_p: "",
+      apellido_p: "",
+      fullName: "",
+      fecha_nacimiento: "",
+      edad: 0,
+      nombre_sx: "",
+    });
+    setSelectedAnalisis([]);
+    setSelectedProcedencia("");
+    setSelectedMetpago("");
+    setSelectedDescuento("1");
+    setObservacion("");
+    setSubtotal(0);
+    setIgv(0);
+    setTotal(0);
+    setVentaGuardada(false); 
+  };
+  const handleAddAnalisis = (newAnalisis: Analisis[]) => {
+    setSelectedAnalisis((prev) => {
+      return [...(prev || []), ...newAnalisis];
+    });
+    closeModalBA(); 
+  };
+  
+  const flatAnalisis = selectedAnalisis.flat();
+  const handleRemoveAnalisis = (id_analisis: number) => {
+    setSelectedAnalisis((prev) => prev.filter((analisis) => analisis.id_analisis !== id_analisis));
+  };
 
-  const removeExam = (codExamen: string) => {
-    setSelectedExams(selectedExams.filter(exam => exam.id_analisis !== codExamen))
+  useEffect(() => {
+  const fetchDatos = async () => {
+    try {
+      
+      const procedencia = await apiCall<Procedencia>("get_procedencia");
+      const metodopago = await apiCall<MetodoPago>("get_metodo_pago");
+      const descuento = await apiCall<Descuento>("get_descuentos");
+      const ultimaSesion: SesionCaja | null = await invoke("obtener_detalles_sesion_caja");
+
+      if (!ultimaSesion) {
+        throw new Error("No hay ninguna sesión de caja abierta");
+      }      
+      setProcedencia(procedencia);
+      setMetPago(metodopago);
+      setDescuento(descuento);
+      setIsCajaAbierta(true);
+    } catch (err) {
+      console.error("Error al obtener Medicos:", err);
+      setIsCajaAbierta(false);
+    }
+  };
+  fetchDatos();
+}, []);  
+  const calcularMontos = useCallback(() => {
+    const calculatedTotal = selectedAnalisis.reduce((sum, analisis) => {
+      return sum + analisis.precio;
+    }, 0);
+    const descuentoSeleccionado = descuento.find(
+      (desc) => desc.id_desc.toString() === selectedDescuento
+    );
+    const descuentoValor = descuentoSeleccionado 
+      ? calculatedTotal * (descuentoSeleccionado.valor_desc / 100) 
+      : 0;
+    const totalConDescuento = calculatedTotal - descuentoValor;
+  
+    const calculatedIgv = totalConDescuento * 0.18;
+    const calculatedSubtotal = totalConDescuento - calculatedIgv;
+       
+    setSubtotal(calculatedSubtotal);
+    setIgv(calculatedIgv);
+    setTotal(totalConDescuento);
+  }, [selectedAnalisis, selectedDescuento, descuento]);
+  
+  useEffect(() => {
+    calcularMontos();
+  }, [selectedAnalisis, calcularMontos]); 
+
+  async function handleGuardarVenta() {   
+   if (!selectedPerson || !selectedPerson.id_paciente || !selectedProcedencia || !selectedMetpago) {
+      alert("Por favor complete todos los campos requeridos");
+      return;
+    }
+    const procedenciaId = parseInt(selectedProcedencia); 
+    const metodoPagoId = parseInt(selectedMetpago);
+    const descuentoId = selectedDescuento ? parseInt(selectedDescuento) : null;
+  
+    if (!procedenciaId || !metodoPagoId) {
+      alert("Por favor seleccione opciones válidas para Procedencia y Método de Pago.");
+      return;
+    }
+    if (!selectedMedico || !selectedMedico.id_medico) {
+      alert("Por favor seleccione un médico.");
+      return;
+    }
+    try {
+      const ventaData: VentaDatos = {
+        id_paciente: selectedPerson.id_paciente,
+        id_procedencia: procedenciaId,
+        id_metodo_pago: metodoPagoId,
+        id_medico: selectedMedico.id_medico,
+        id_desc: descuentoId || null,
+        observacion: observacion || "",
+        total_importe: total,
+        codigoBarra: "", 
+        detalles: selectedAnalisis.map((analisis) => ({
+          id_analisis: analisis.id_analisis,
+          precio: analisis.precio,
+          resultado: "",
+          total: analisis.precio,
+        })),
+      };
+      const response = await invoke<string>("registrar_venta", { venta: ventaData });
+      const ventaResponse: VentaResponse = JSON.parse(response);
+      setCodigoBarra(ventaResponse.codigo_barra);
+      setTicketModalOpen(true);
+      setVentaDatos(ventaData);
+      setVentaGuardada(true);
+      alert(`Venta registrada: ${ventaResponse.mensaje}, Código: ${ventaResponse.codigo_barra}`);
+    } catch (error:any) {
+      console.error("Error al registrar la venta:", error);
+      alert(error.message || "Ocurrió un error al registrar la venta.");
+    }
   }
+  const isGuardarVentaDisabled =
+  ventaGuardada ||
+  !selectedPerson.id_paciente ||
+  !selectedProcedencia ||
+  !selectedMetpago ||
+  !selectedAnalisis.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-sky-50 p-8">
@@ -143,14 +322,25 @@ export default function VentasProceso() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden"
-      >
+        >
         <div className="bg-gradient-to-r from-teal-400 via-cyan-400 to-sky-400 p-6 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">Orden de Trabajo</h1>
           <Badge variant="outline" className="text-white border-white px-3 py-1 text-lg">
-            OT000163
+            {codigoBarra ? (
+              <Barcode value={codigoBarra} width={2} height={40} displayValue={false} />
+            ) : (
+              "Sin código"
+            )}
           </Badge>
+          <Link to="/listactual">
+            <Button 
+              variant="outline"
+              className="bg-gradient-to-r from-teal-400 to-sky-400 hover:from-teal-500 hover:to-sky-500 text-white">
+              <List className="mr-2 h-5 w-5" />
+                Ventas
+            </Button>
+            </Link>
         </div>
-        
         <div className="grid grid-cols-3 gap-6 p-6">
           <div className="col-span-2 space-y-6">
             <Card className="overflow-hidden border-teal-100">
@@ -164,7 +354,7 @@ export default function VentasProceso() {
                       <Label className="text-sm font-medium text-gray-600">DNI Paciente</Label>
                       <div className="flex space-x-2">
                         <Input readOnly className="bg-gray-100 border-teal-200" 
-                          value={selectedPerson.nombre_p} onChange={(e) => setSelectedPerson((prev) => ({ ...prev, name: e.target.value }))} />
+                          value={selectedPerson.num_doc} onChange={(e) => setSelectedPerson((prev) => ({ ...prev, name: e.target.value }))} />
                         <TooltipProvider>
                           <Tooltip>
                           <TooltipTrigger asChild>
@@ -193,12 +383,22 @@ export default function VentasProceso() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-gray-600">Procedencia</Label>
-                      <Select defaultValue="02">
+                        <Select 
+                        value={selectedProcedencia} 
+                        onValueChange={setSelectedProcedencia}
+                      >
                         <SelectTrigger className="bg-gray-50 border-teal-200">
                           <SelectValue placeholder="Seleccionar procedencia" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="02">02 - MÉDICO</SelectItem>
+                          {procedencia.map((proc) => (
+                            <SelectItem 
+                              key={proc.id_procedencia} 
+                              value={proc.id_procedencia.toString()}
+                            >
+                              {proc.id_procedencia} - {proc.nombre_pro}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -224,14 +424,13 @@ export default function VentasProceso() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-600">Edad</Label>
-                        <Input value={selectedPerson.edad === 0 ? "" : selectedPerson.edad} readOnly className="bg-gray-100 border-teal-200" />
+                        <Input value={selectedPerson.edad === 0 ? "" : `${selectedPerson.edad} años`} readOnly className="bg-gray-100 border-teal-200" />
                       </div>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
             <Card className="overflow-hidden border-cyan-100">
               <CardContent className="p-0">
                 <div className="bg-gradient-to-r from-cyan-400 to-sky-400 p-4">
@@ -276,7 +475,7 @@ export default function VentasProceso() {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-600">Cantidad S/.</Label>
-                        <Input readOnly type="number" className="w-24 bg-gray-100 border-cyan-200" />
+                        <Input value={total && selectedMedico.comision? (total * (selectedMedico.comision / 100)).toFixed(2)  : ""} readOnly type="number" className="w-24 bg-gray-100 border-cyan-200" />
                       </div>
                     </div>
                   </div>
@@ -302,7 +501,6 @@ export default function VentasProceso() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className="overflow-hidden border-sky-100">
               <CardContent className="p-0">
                 <div className="bg-gradient-to-r from-sky-400 to-teal-400 p-4 flex justify-between items-center">
@@ -313,47 +511,39 @@ export default function VentasProceso() {
                   </Button>
                 </div>
                 <div className="p-4 space-y-4">
-                  <RadioGroup defaultValue="public" className="flex space-x-4" onValueChange={setPriceType}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="public" id="public" />
-                      <Label htmlFor="public">Precio venta Público</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="corporate" id="corporate" />
-                      <Label htmlFor="corporate">Precio Corporativo/Convenio</Label>
-                    </div>
-                  </RadioGroup>
-
                   <div className="border rounded-lg overflow-hidden border-sky-200">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-sky-50">
                           <TableHead className="w-[100px]">Código</TableHead>
-                          <TableHead>Nombre del Examen</TableHead>
+                          <TableHead>Nombre del Análisis</TableHead>
                           <TableHead>Categoría</TableHead>
-                          <TableHead className="text-right">Precio</TableHead>
-                          <TableHead>Estado</TableHead>
+                          <TableHead className="text-center">Precio</TableHead>
                           <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {selectedExams.map((exam) => (
-                          <TableRow key={exam.id_analisis} className="hover:bg-sky-50">
-                            <TableCell>{exam.id_analisis}</TableCell>
-                            <TableCell>{exam.nombre_analisis}</TableCell>
-                            <TableCell>{exam.nombre_categoria_ana}</TableCell>
-                            <TableCell className="text-right">S/ {exam.precio.toFixed(2)}</TableCell>
+                      {selectedAnalisis.length > 0 ? (
+                        flatAnalisis.map((analisis) => (
+                          <TableRow key={analisis.id_analisis} className="hover:bg-sky-50">
+                            <TableCell>{analisis.id_analisis}</TableCell>
+                            <TableCell>{analisis.nombre_analisis}</TableCell>
+                            <TableCell>{analisis.nombre_categoria_ana}</TableCell>
+                            <TableCell className="text-center">S/ {analisis.precio}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="text-sky-600 hover:text-sky-700 hover:bg-sky-100" onClick={() => removeExam(exam.id_analisis)}>
+                              <Button variant="ghost" size="icon" className="text-sky-600 hover:text-sky-700 hover:bg-sky-100" 
+                                onClick={() => handleRemoveAnalisis(analisis.id_analisis)}>
                                 <X className="h-4 w-4" />
                               </Button>
                             </TableCell>
-                          </TableRow>
-                        ))}
+                          </TableRow >))
+                            ):(
+                              <TableRow key="empty-row">
+                              <TableCell colSpan={6} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                                No se han agregado análisis.
+                              </TableCell>
+                            </TableRow>
+                            )}
                       </TableBody>
                     </Table>
                   </div>
@@ -361,7 +551,6 @@ export default function VentasProceso() {
               </CardContent>
             </Card>
           </div>
-          {/* Right Column - Sale Details */}
           <div className="space-y-6">
             <Card className="overflow-hidden border-teal-100">
               <CardContent className="p-0">
@@ -369,72 +558,39 @@ export default function VentasProceso() {
                   <h2 className="text-xl font-semibold text-white">Detalles de la Venta</h2>
                 </div>
                 <div className="p-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Select defaultValue="T1">
-                      <SelectTrigger className="border-teal-200">
-                        <SelectValue placeholder="Tipo de comprobante" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="T1">T1 - TICKET</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select defaultValue="01">
-                      <SelectTrigger className="border-teal-200">
-                        <SelectValue placeholder="Método de pago" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="01">01 - CONTADO</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-600">Cliente</Label>
-                    <div className="flex space-x-2">
-                      <Input placeholder="00001" className="bg-gray-50 border-teal-200" />
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button size="icon"variant="outline" className="border-teal-200 text-teal-600 hover:bg-teal-50">
-                                <Search className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Buscar cliente</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-600">DNI</Label>
-                        <Input value="00000000" readOnly className="bg-gray-100 border-teal-200" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-600">Nombre</Label>
-                        <Input value="CLIENTE GENÉRICO" readOnly className="bg-gray-100 border-teal-200" />
-                      </div>
-                    </div>
-
+                  <Label className="text-sm font-medium text-gray-600">Método Pago</Label>
+                  <Select value={selectedMetpago} onValueChange={setSelectedMetpago}>
+                  <SelectTrigger className="bg-gray-50 border-teal-200">
+                    <SelectValue placeholder="Tipo Pago" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {metpago.map((metp) => (
+                      <SelectItem key={metp.id_metodo_pago} value={metp.id_metodo_pago.toString()}>
+                        {metp.id_metodo_pago} - {metp.nombre_metodop}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                  </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-600">Descuento</Label>
+                      <Label className="text-sm font-medium text-gray-600">Descuento %</Label>
                       <div className="flex items-center space-x-2">
-                        <Select defaultValue="amount">
-                          <SelectTrigger className="w-[150px] border-teal-200">
-                            <SelectValue placeholder="Tipo descuento" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="amount">Por Importe</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <span>=</span>
-                        <Input type="number" defaultValue="0" className="w-24 bg-gray-50 border-teal-200" />
-                        <Input value="S/ 0.00" readOnly className="bg-gray-100 border-teal-200" />
+                      <Select value={selectedDescuento} onValueChange={(value) => setSelectedDescuento(value)}>
+                        <SelectTrigger className="bg-gray-50 border-teal-200">
+                          <SelectValue placeholder="Seleccione Descuento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {descuento.map((desc) => (
+                          <SelectItem
+                            key={desc.id_desc} value={desc.id_desc.toString()}>
+                              {desc.nombre_desc} - {desc.valor_desc}%
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                      </Select>
                       </div>
                     </div>
-
                     <div className="border-t border-teal-200 pt-4 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">SubTotal:</span>
@@ -449,30 +605,60 @@ export default function VentasProceso() {
                         <span>S/ {total.toFixed(2)}</span>
                       </div>
                     </div>
-
-                    <Button className="w-full bg-gradient-to-r from-teal-400 to-sky-400 hover:from-teal-500 hover:to-sky-500 text-white">
-                      <Receipt className="mr-2 h-5 w-5" />
-                      Generar Venta
+                    <Button
+                        onClick={handleGuardarVenta}
+                        disabled={!isCajaAbierta || selectedAnalisis.length === 0 || isGuardarVentaDisabled}
+                        className="w-full bg-gradient-to-r from-teal-400 to-sky-400 hover:from-teal-500 hover:to-sky-500 text-white">
+                        <Receipt className="mr-2 h-5 w-5" />
+                        Registrar Venta
+                      </Button>
+                    <Button 
+                        onClick={() => setTicketModalOpen(true)}
+                        disabled={!selectedPerson.id_paciente || !selectedAnalisis.length}
+                        variant="outline"
+                        className="w-full bg-gradient-to-r from-teal-400 to-sky-400 hover:from-teal-500 hover:to-sky-500 text-white">
+                      <Ticket className="mr-2 h-5 w-5" />
+                      Generar Ticket 
                     </Button>
                   </div>
                 </CardContent>
               </Card>
-
               <Card className="border-teal-100">
                 <CardContent className="p-4">
                   <Label className="text-sm font-medium text-gray-600">Comentario sobre la venta</Label>
-                  <Textarea placeholder="Ingrese un comentario..." className="mt-2 bg-gray-50 border-teal-200" />
+                  <Textarea value={observacion} onChange={(e) => setObservacion(e.target.value)} placeholder="Ingrese un comentario..." className="mt-2 bg-gray-50 border-teal-200" />
+                </CardContent>
+              </Card>
+              <Card className="border-teal-100">
+                <CardContent className="p-4">
+                  <Button 
+                        onClick={limpiarFormulario}
+                        variant="outline"
+                        className="w-full bg-gradient-to-r from-teal-400 to-sky-400 hover:from-teal-500 hover:to-sky-500 text-white">
+                      <Eraser className="mr-2 h-5 w-5" />
+                      Limpiar Formulario 
+                  </Button>
                 </CardContent>
               </Card>
             </div>
           </div>
         </motion.div>
         <ModalBP isOpen={isModalOpenBP} onClose={closeModalBP} onPersonSelect={handlePersonSelect} />
-        <ModalBM isOpen={isModalOpenBM} onClose={closeModalBM} onPersonSelect={handleMedicoSelect} />
-        <ModalBA isOpen={isModalOpenBA} onClose={closeModalBA} onPersonSelect={handleMedicoSelect} />
+        <ModalBM isOpen={isModalOpenBM} onClose={closeModalBM} onMedicoSelect={handleMedicoSelect} />
+        <ModalBA isOpen={isModalOpenBA} onClose={closeModalBA} onAnalisisSelect={handleAddAnalisis} />
         <ModalAP isOpen={isAddModalOpenP} onClose={closeAddModalP} onSucces={closeAddModalP} />
         <ModalAM isOpen={isAddModalOpenM} onClose={closeAddModalM} onSucces={closeAddModalM}/>
-      </div>
-      
+        <VerTicket
+          isOpen={isTicketModalOpen}
+          onClose={() => setTicketModalOpen(false)}
+          selectedPerson={selectedPerson}
+          selectedMedico={selectedMedico}
+          selectedAnalisis={selectedAnalisis}
+          subtotal={subtotal}
+          igv={igv}
+          total={total}
+          codigoBarra={codigoBarra}
+/>
+      </div>  
     )
   }

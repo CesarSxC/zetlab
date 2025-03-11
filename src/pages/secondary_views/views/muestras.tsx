@@ -112,12 +112,13 @@ export default function Muestras() {
           <ModalAM isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchMuestras}/>
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="w-[200px] font-bold">Id</TableHead>
                 <TableHead className="font-bold">Nombre Muestra</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,7 +133,7 @@ export default function Muestras() {
                   >
                     <TableCell className="font-medium">{muestra.id_muestra}</TableCell>
                     <TableCell className='uppercase font-medium'>{muestra.nombre_muestra}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -157,6 +158,7 @@ export default function Muestras() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
 
         <ModalEM

@@ -12,11 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Edit, Trash2, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Checkbox } from "@/components/ui/checkbox";
 import { apiCall } from "@/lib/apicall";
 import { ModalAA } from "@/pages/principal_views/components/modals/analisis/agregar";
-import { ModalEM } from "@/pages/principal_views/components/modals/medicos/eliminar";
-import { ModalEDA } from "@/pages/principal_views/components/modals/analisis/editar";
+import { ModalEA } from "@/pages/principal_views/components/modals/analisis/eliminar";
+import { ModalEDA } from "@/pages/principal_views/components/modals/analisis/editar"; 
 
 interface Analisis {
     id_analisis: number;
@@ -25,7 +24,7 @@ interface Analisis {
     precio: number;
     nombre_muestra: string;
     nombre_unidad: string;
-    rango_referencial: boolean;
+    rango_referencial: string;
     id_categoria_ana: number;
     id_muestra: number;
     id_unidades: number;
@@ -49,7 +48,7 @@ export default function Analisis() {
   const [selectPrecio, setselectPrecio] = useState<number | null>(null);
   const [selectNombreMu, setselectNombreMu] = useState<number | null>(null);
   const [selectNombreUn, setselectNombreUn] = useState<number | null>(null);
-  const [selectRangoRe, setselectRangoRe] = useState<boolean | null>(null);
+  const [selectRangoRe, setselectRangoRe] = useState<string | null>(null);
   //Modal Eliminar
   const openDeleteModal = (id: number) => {
     setSelectedId(id);
@@ -60,7 +59,7 @@ export default function Analisis() {
     setSelectedId(null);
   };
   //Modal Editar
-  const openEditModal = (id: number, analisis: string, precio: number, rangoref: boolean, categoria: number, muestra: number, 
+  const openEditModal = (id: number, analisis: string, precio: number, rangoref: string, categoria: number, muestra: number, 
     unidad: number
   ) => {
     console.log("Unidad:", unidad)  // Este es el valor que va a selectNombreUn
@@ -80,7 +79,7 @@ export default function Analisis() {
     setSelectedId(null);
     setselectNombreAna(null);
     setselectPrecio(0);
-    setselectRangoRe(false);
+    setselectRangoRe(null);
     setselectNombreCat(null);
     setselectNombreMu(null);
     setselectNombreUn(null);
@@ -150,16 +149,17 @@ export default function Analisis() {
           <ModalAA isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchAnalisis}/>
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="font-bold">Id</TableHead>
                 <TableHead className="font-bold">Nombre A.</TableHead>
                 <TableHead className="font-bold">Categoría</TableHead>
-                <TableHead className="font-bold">Precio</TableHead>
+                <TableHead className="font-bold text-center">Precio</TableHead>
                 <TableHead className="font-bold">Unidad</TableHead>
-                <TableHead className="font-bold">Rango</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="font-bold text-center">Rango</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,24 +181,16 @@ export default function Analisis() {
                     <TableCell className="uppercase font-medium">
                       {analisis.nombre_categoria_ana}
                     </TableCell>
-                    <TableCell className="uppercase font-medium">
-                      {analisis.precio}
+                    <TableCell className="uppercase font-medium text-center">
+                      {analisis.precio.toFixed(2)}
                     </TableCell>
                     <TableCell className="uppercase font-medium">
                       {analisis.nombre_unidad}
                     </TableCell>
                     <TableCell className="uppercase font-medium text-center">
-                    <Checkbox
-                      checked={analisis.rango_referencial}
-                      disabled
-                      className={`cursor-default rounded-md ${
-                        analisis.rango_referencial
-                          ? "bg-green-500 border-green-500 text-white" 
-                          : "bg-red-500 border-red-500 text-white"
-                      } data-[state=checked]:ring-2 data-[state=checked]:ring-offset-1`}
-                    />
+                    {analisis.rango_referencial}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -228,11 +220,12 @@ export default function Analisis() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
-        <ModalEM
+        <ModalEA
           isOpen={isDeleteModalOpen}
           onClose={closeDeleteModal}
-          idMedico={selectedId}
+          idAnalisis={selectedId}
           onSucces={fetchAnalisis}
         />
         <ModalEDA

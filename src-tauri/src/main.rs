@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod models;
 mod commands;
 mod data;
 mod db;
@@ -14,6 +13,11 @@ use commands::c_pacientes::*;
 use commands::c_medicos::*;
 use commands::c_venta::*;
 use commands::c_login::login;
+use commands::c_procedencias::get_procedencia;
+use commands::c_metodos_pago::get_metodo_pago;
+use commands::c_descuentos::*;
+use commands::c_caja::*;
+use commands::c_ventacomp::*;
 
 #[tokio::main]
 async fn main() {
@@ -29,6 +33,9 @@ async fn main() {
             get_medico,
             get_sexo,
             get_tidoc,
+            get_procedencia,
+            get_metodo_pago,
+            get_descuentos,
             // POST
             insert_muestras,
             insert_especialidad,
@@ -37,7 +44,6 @@ async fn main() {
             insert_analisis,
             insert_paciente,
             insert_medico,
-            insert_venta,
             // DELETE
             delete_muestras,
             delete_especialidad,
@@ -56,7 +62,16 @@ async fn main() {
             update_paciente,
             update_medico,
 
-            login
+            login,
+            aperturar_caja,
+            cerrar_caja,
+            obtener_detalles_sesion_caja,
+            mostrar_cajas,
+            registrar_venta,
+            guardar_resultados,
+            listar_ventas_por_sesion_caja,
+            obtener_detalles_venta,
+            editar_resultado
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -161,7 +161,7 @@ const handleSelectChange = (value: string, id: string) => {
         numTelf: formData.telefono || "",
       })
       onSucces();
-      onClose();      
+      onClose();
     } catch (error) {
       console.error("Error al insertar paciente:", error)
 

@@ -83,7 +83,7 @@ export default function Especialidades() {
   }, [especialidad, searchTerm]);
 
 
-  if (loading) return <div>Cargando categorias...</div>;
+  if (loading) return <div>Cargando especialidades...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -112,12 +112,14 @@ export default function Especialidades() {
           <ModalAE isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchEspecialidad} />
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
+
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="w-[200px] font-bold">Id</TableHead>
                 <TableHead className="font-bold">Nombre Especialidad</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,7 +134,7 @@ export default function Especialidades() {
                   >
                     <TableCell className="font-medium">{especialidad.id_especialidad}</TableCell>
                     <TableCell className='uppercase font-medium'>{especialidad.nombre_esp}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -157,6 +159,7 @@ export default function Especialidades() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
 
         <ModalEES

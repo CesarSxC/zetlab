@@ -8,7 +8,7 @@ import { apiCall } from '@/lib/apicall';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPersonSelect: (person: any) => void;
+  onMedicoSelect: (medico: any) => void;
 }
 
 interface Medicos {
@@ -30,7 +30,7 @@ interface Medicos {
     fecha_actualizado: string;
   }
 
-export const ModalBM: React.FC<ModalProps> = ({ isOpen, onClose, onPersonSelect }) => {
+export const ModalBM: React.FC<ModalProps> = ({ isOpen, onClose, onMedicoSelect }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [personas, setPersonas] = useState<Medicos[]>([]);
   const [filteredPersonas, setFilteredPersonas] = useState<Medicos[]>([]);
@@ -69,7 +69,7 @@ export const ModalBM: React.FC<ModalProps> = ({ isOpen, onClose, onPersonSelect 
   };
   
   const handleSelectPerson = (person: Medicos) => {
-    onPersonSelect(person);
+    onMedicoSelect(person);
     onClose();
   };
 

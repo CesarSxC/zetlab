@@ -262,7 +262,7 @@ const handleChange = (
                             <div className="relative">
                               <Input
                                 id="numeroDocumento"
-                                type="text"
+                                type="number"
                                 value={formData.numeroDocumento}
                                 onChange={handleChange}
                                 className={cn(

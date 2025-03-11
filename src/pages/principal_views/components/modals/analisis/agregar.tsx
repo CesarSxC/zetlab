@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
 import { apiCall } from "@/lib/apicall"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 
 interface ModalProps {
@@ -28,7 +27,7 @@ export const ModalAA: React.FC<ModalProps> = ({ isOpen, onClose, onSucces }) => 
   const [idMuestraSelected, setIdMuestraSelected] = useState<number | "">("")
   const [idUnidades, setIdUnidades] = useState<Unidad[]>([])
   const [idUnidadesSelected, setIdUnidadesSelected] = useState<number | "">("")
-  const [rangoReferencial, setRangoReferencial] = useState(false)
+  const [rangoReferencial, setRangoReferencial] = useState("")
 
   const limpiar = () => {
     setNombreAnalisis("");
@@ -36,7 +35,7 @@ export const ModalAA: React.FC<ModalProps> = ({ isOpen, onClose, onSucces }) => 
     setIdCategoriaAnaSelected("");
     setIdMuestraSelected("");
     setIdUnidadesSelected("");
-    setRangoReferencial(false);
+    setRangoReferencial("");
   }
 
   useEffect(() => {
@@ -199,12 +198,17 @@ export const ModalAA: React.FC<ModalProps> = ({ isOpen, onClose, onSucces }) => 
                   <Label htmlFor="rangoReferencial" className="text-sm font-medium text-gray-700">
                     Rango Referencial
                   </Label>
-                  <Switch
-                    id="rangoReferencial"
-                    checked={rangoReferencial}
-                    onCheckedChange={setRangoReferencial}
-                    className="data-[state=checked]:bg-blue-500"
-                  />
+                  <Input
+                      id="rangoReferencial"
+                      type="text"
+                      value={rangoReferencial}
+                      onChange={(e) => setRangoReferencial(e.target.value)}
+                      className={cn(
+                        "pl-10 bg-white border-gray-300",
+                        "focus:ring-blue-500 focus:border-blue-500"
+                      )}
+                      required
+                    />
                 </div>
               </div>
 

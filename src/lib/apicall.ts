@@ -8,9 +8,7 @@ export const apiCall = async <T>(
     invoke(name, parameters)
       .then((result) => {
         try {
-          // Intentamos convertir el resultado JSON en un arreglo
           const parsedResult = JSON.parse(result as string);
-          // Si no es un arreglo, lo envolvemos en uno
           resolve(Array.isArray(parsedResult) ? parsedResult : [parsedResult]);
         } catch (error) {
           reject(`Error al parsear los datos: ${error}`);

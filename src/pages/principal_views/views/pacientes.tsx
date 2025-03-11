@@ -144,6 +144,7 @@ export default function Personas() {
           <ModalAP isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchPacientes} />
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
@@ -153,7 +154,7 @@ export default function Personas() {
                 <TableHead className="font-bold">Documento</TableHead>
                 <TableHead className="font-bold">Telefono</TableHead>
                 <TableHead className="font-bold">Edad</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -184,7 +185,7 @@ export default function Personas() {
                     <TableCell className="uppercase font-medium">
                       {calcularEdad(persona.fecha_nacimiento)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -214,6 +215,7 @@ export default function Personas() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
         <ModalEP
           isOpen={isDeleteModalOpen}

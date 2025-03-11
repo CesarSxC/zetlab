@@ -147,6 +147,8 @@ export default function Medicos() {
           <ModalAM isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchMedicos}/>
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
+
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
@@ -157,7 +159,7 @@ export default function Medicos() {
                 <TableHead className="font-bold">Telefono</TableHead>
                 <TableHead className="font-bold text-center">Edad</TableHead>
                 <TableHead className="font-bold text-center">Comision %</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -191,7 +193,7 @@ export default function Medicos() {
                     <TableCell className="uppercase font-medium text-center">
                       {medico.comision}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -221,6 +223,7 @@ export default function Medicos() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
         <ModalEM
           isOpen={isDeleteModalOpen}

@@ -19,9 +19,9 @@ pub async fn login(username: String, password: String) -> Result<LoginResponse, 
         .fetch_one(&db) 
         .await
         .map(|row| LoginResponse {
-            id_usuario: row.get("id_usuario"),
-            id_rol: row.get("id_rol"),
-            nombre_rol: row.get("nombre_rol"),
+            id_usuario: row.get(0),
+            id_rol: row.get(1),
+            nombre_rol: row.get(2),
         })
         .map_err(|e| e.to_string())?;
 

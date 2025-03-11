@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
 import { apiCall } from "@/lib/apicall"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 
 interface ModalProps {
@@ -19,7 +18,7 @@ interface ModalProps {
   id_categoria: number | null;
   id_muestra: number | null;
   id_unidades: number | null;
-  rango_ref: boolean | null;
+  rango_ref: string | null;
 }
 
 interface CategoriaA { id_categoria_ana: number; nombre_categoria_ana: string }
@@ -237,12 +236,17 @@ export const ModalEDA: React.FC<ModalProps> = ({ isOpen, onClose, onSucces, id_a
                   <Label htmlFor="rangoReferencial" className="text-sm font-medium text-gray-700">
                     Rango Referencial
                   </Label>
-                  <Switch
-                    id="rangoReferencial"
-                    checked={rangoReferencial ?? false}
-                    onCheckedChange={setRangoReferencial}
-                    className="data-[state=checked]:bg-blue-500"
-                  />
+                  <Input
+                      id="rangoReferencial"
+                      type="text"
+                      value={rangoReferencial ?? ""}
+                      onChange={(e) => setRangoReferencial(e.target.value)}
+                      className={cn(
+                        "pl-10 bg-white border-gray-300",
+                        "focus:ring-yellow-500 focus:yellow-blue-500"
+                      )}
+                      required
+                    />
                 </div>
               </div>
               <div className="flex justify-end space-x-4 mt-6">

@@ -35,6 +35,7 @@ export const ModalEDU: React.FC<ModalProps> = ({ isOpen, onClose, idUnidades, in
         nombreUnidad: nombreUnidad,
       })
       setNombreUnidad("");
+      setAbreviatura("");
       onSucces();
       onClose();
     } catch (error) {

@@ -19,7 +19,7 @@ export const ModalAC: React.FC<ModalProps> = ({ isOpen, onClose, onSucces }) => 
     e.preventDefault()
     try {
       await apiCall("insert_cat_analisis", {
-        nombre_p: name,
+        nombreCategoriaAna: name,
       })
       setName("");
       onSucces();

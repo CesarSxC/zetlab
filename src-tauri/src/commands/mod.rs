@@ -7,3 +7,8 @@ pub mod c_analisis;
 pub mod c_pacientes;
 pub mod c_medicos;
 pub mod c_venta;
+pub mod c_metodos_pago;
+pub mod c_procedencias;
+pub mod c_descuentos;
+pub mod c_caja;
+pub mod c_ventacomp;

@@ -1,12 +1,4 @@
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Bell, Search, User, Settings, LogOut, HelpCircle } from "lucide-react"
-
 const Navbar = () => {
-  const [searchValue, setSearchValue] = useState("")
-
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,7 +6,7 @@ const Navbar = () => {
           <span className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-transparent bg-clip-text">
             Zetlab
           </span>
-          <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
+{/*           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
             <div className="max-w-lg w-full lg:max-w-xs">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -31,8 +23,8 @@ const Navbar = () => {
                 />
               </div>
             </div>
-          </div>
-          <div className="flex items-center">
+          </div> */}
+ {/*          <div className="flex items-center">
             <Button
               variant="ghost"
               size="icon"
@@ -72,7 +64,7 @@ const Navbar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          </div> */}
         </div>
       </div>
     </nav>

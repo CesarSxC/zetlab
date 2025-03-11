@@ -24,6 +24,7 @@ export const ModalAU: React.FC<ModalProps> = ({ isOpen, onClose, onSucces }) => 
         nombreUnidad: name,
       })
       setName("");
+      setAbreviatura("");
       onSucces();
       onClose();
     } catch (error) {

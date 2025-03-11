@@ -9,13 +9,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ChevronLeft, ChevronRight, HelpCircle, LogOut, Home, BarChart3, Users, FileText, BriefcaseMedical,
+import { ChevronLeft, ChevronRight, LogOut, Home, BarChart3, Users, FileText, BriefcaseMedical,
   PencilRuler, FlaskConical, Beaker, Stethoscope
  } from "lucide-react"
 
 const menuItems = [
-  { icon: Home, label: "Inicio", link: "/especialidades" },
-  { icon: BarChart3, label: "Caja", link: "/ventas" },
+  { icon: Home, label: "Inicio", link: "/caja" },
+  { icon: BarChart3, label: "Ventas", link: "/ventas" },
   { icon: Users, label: "Pacientes", link: "/pacientes" },
   { icon: Stethoscope, label: "Médicos", link: "/medicos" },
   { icon: FileText, label: "Análisis", link: "/analisis" },
@@ -34,14 +34,6 @@ const Sidebar = ({ expanded, toggleSidebar }: { expanded: boolean; toggleSidebar
       expanded ? "w-64" : "w-[70px]"
     )}>
       <div className="flex items-center justify-between p-4">
-        <img
-          src="/placeholder.svg?height=40&width=40"
-          alt="Logo"
-          className={cn(
-            "rounded-full transition-all duration-300 ease-in-out bg-white p-1",
-            expanded ? "w-10 h-10" : "w-8 h-8"
-          )}
-        />
         <Button
           onClick={toggleSidebar}
           variant="ghost"
@@ -68,7 +60,6 @@ const Sidebar = ({ expanded, toggleSidebar }: { expanded: boolean; toggleSidebar
                         "rounded-lg"
                       )}
                       onClick={() => setActiveItem(item.label)}
-
                     >
                       <item.icon className={cn("h-5 w-5", expanded ? "mr-4" : "mr-0")} />
                       {expanded && <span className="font-medium">{item.label}</span>}
@@ -90,29 +81,33 @@ const Sidebar = ({ expanded, toggleSidebar }: { expanded: boolean; toggleSidebar
 
       <div className="p-4 border-t border-white/20">
         <TooltipProvider>
-          <Tooltip>
+{/*           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/20 transition-all duration-200 rounded-lg">
+              <Button variant="ghost" className={cn("w-full justify-start text-white hover:bg-white/20 transition-all duration-200 rounded-lg"
+              , expanded ? "px-4" : "px-2", "rounded-lg")}>
                 <HelpCircle className={cn("h-5 w-5", expanded ? "mr-4" : "mr-0")} />
                 {expanded && <span className="font-medium">Ayuda y Soporte</span>}
               </Button>
             </TooltipTrigger>
             {!expanded && (
               <TooltipContent side="right" className="bg-indigo-800 text-white">
-                Help & Support
+                Ayuda y Soporte
               </TooltipContent>
             )}
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start mt-2 text-white hover:bg-white/20 transition-all duration-200 rounded-lg">
+              <Link to="/login">
+              <Button variant="ghost" className={cn("w-full justify-start text-white hover:bg-white/20 transition-all duration-200 rounded-lg"
+              , expanded ? "px-4" : "px-2", "rounded-lg")}>
                 <LogOut className={cn("h-5 w-5", expanded ? "mr-4" : "mr-0")} />
                 {expanded && <span className="font-medium">Cerrar Sesión</span>}
               </Button>
+                </Link>
             </TooltipTrigger>
             {!expanded && (
               <TooltipContent side="right" className="bg-indigo-800 text-white">
-                Logout
+                Cerrar Sesión
               </TooltipContent>
             )}
           </Tooltip>

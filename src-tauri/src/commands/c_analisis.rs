@@ -10,7 +10,7 @@ pub struct Analisis {
     pub precio: f32,
     pub id_muestra: i64,
     pub id_unidades: i64,
-    pub rango_referencial: bool,
+    pub rango_referencial: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,7 +21,7 @@ pub struct AnalisisGet {
     pub precio: f32,
     pub nombre_muestra: String,
     pub nombre_unidad: String,
-    pub rango_referencial: bool,
+    pub rango_referencial: String,
     pub id_categoria_ana: i64,
     pub id_muestra: i64,
     pub id_unidades: i64,
@@ -66,7 +66,7 @@ pub async fn insert_analisis(
     precio: f64,
     id_muestra: i64,
     id_unidades: i64,
-    rango_referencial: bool,
+    rango_referencial: &str,
 ) -> Result<(), String> {
     let db: Pool<MySql> = conn_db().await.unwrap();
 
@@ -106,7 +106,7 @@ pub async fn update_analisis(
     precio: f64,
     id_muestra: i64,
     id_unidades: i64,
-    rango_referencial: bool,
+    rango_referencial: &str,
 ) -> Result<(), String> {
     let db: Pool<MySql> = conn_db().await.unwrap();
     sqlx::query("CALL SP_ACTUALIZAR_ANALISIS (?,?,?,?,?,?,?)")

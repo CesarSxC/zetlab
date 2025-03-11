@@ -87,13 +87,13 @@ export default function Unidades() {
   }, [unidades, searchTerm]);
 
 
-  if (loading) return <div>Cargando categorias...</div>;
+  if (loading) return <div>Cargando unidades...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Gestión de Categorías</CardTitle>
+        <CardTitle className="text-2xl font-bold">Gestión de Unidades</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between items-center mb-6">
@@ -116,13 +116,14 @@ export default function Unidades() {
           <ModalAU isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchUnidades}  />
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="w-[200px] font-bold">Id</TableHead>
                 <TableHead className="font-bold">Nombre Categoría</TableHead>
                 <TableHead className="font-bold">Abreviatura</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -138,7 +139,7 @@ export default function Unidades() {
                     <TableCell className="font-medium">{unidad.id_unidades}</TableCell>
                     <TableCell className='uppercase font-medium'>{unidad.nombre_unidad}</TableCell>
                     <TableCell className='uppercase font-medium'>{unidad.abreviatura_unidad}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -163,6 +164,7 @@ export default function Unidades() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
 
         <ModalEU
@@ -179,7 +181,6 @@ export default function Unidades() {
           initialAbreviatura={selectAbreviatura}
           onSucces={fetchUnidades} 
         />
-
       </CardContent>
     </Card>
   );

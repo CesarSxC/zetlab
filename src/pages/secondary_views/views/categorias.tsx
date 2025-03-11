@@ -111,12 +111,14 @@ export default function CateogriasAn() {
           <ModalAC isOpen={isAddModalOpen} onClose={closeAddModal} onSucces={fetchCategorias} />
         </div>
         <div className="rounded-lg overflow-hidden shadow-xl">
+        <div className="max-h-96 overflow-y-auto">
+
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="w-[200px] font-bold">Id</TableHead>
                 <TableHead className="font-bold">Nombre Categoría</TableHead>
-                <TableHead className="text-right font-bold">Acciones</TableHead>
+                <TableHead className="text-center font-bold">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -131,7 +133,7 @@ export default function CateogriasAn() {
                   >
                     <TableCell className="font-medium">{categoria.id_categoria_ana}</TableCell>
                     <TableCell className='uppercase font-medium'>{categoria.nombre_categoria_ana}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -156,6 +158,7 @@ export default function CateogriasAn() {
               </AnimatePresence>
             </TableBody>
           </Table>
+          </div>
         </div>
 
         <ModalEC
